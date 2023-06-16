@@ -2967,10 +2967,6 @@ MonoBehaviour:
   fillImage: {fileID: 2028041078}
   dropdown: {fileID: 1441734346}
   Speaker: {fileID: 444565746}
-  image1: {fileID: 0}
-  image2: {fileID: 0}
-  spectrumData1: []
-  spectrumData2: []
   btn1: {fileID: 1179119435}
   btn2: {fileID: 587622540}
   compareButton: {fileID: 367935525}
@@ -2978,12 +2974,8 @@ MonoBehaviour:
   play: {fileID: 469698435, guid: ad954b71f0ef9be46952c3a932c6afd2, type: 3}
   stop: {fileID: -1375525650, guid: ad954b71f0ef9be46952c3a932c6afd2, type: 3}
   microPhone: {fileID: 21300000, guid: 76ddec886ce475c489184a60d3fbb1b9, type: 3}
-  dustbinOutline: {fileID: 0}
   slider1: {fileID: 1742047315}
   slider2: {fileID: 243694966}
-  source1: {fileID: 1742047314}
-  source2: {fileID: 243694965}
-  delete: {fileID: 61198407}
 --- !u!4 &1593803085
 Transform:
   m_ObjectHideFlags: 0
@@ -3936,6 +3928,18 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 285452862}
     m_Modifications:
+    - target: {fileID: 1275610220639167665, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
+      propertyPath: m_Color.b
+      value: 0.21244214
+      objectReference: {fileID: 0}
+    - target: {fileID: 1275610220639167665, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
+      propertyPath: m_Color.g
+      value: 0.21244214
+      objectReference: {fileID: 0}
+    - target: {fileID: 1275610220639167665, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
+      propertyPath: m_Color.r
+      value: 0.5188679
+      objectReference: {fileID: 0}
     - target: {fileID: 2383086155322910419, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -4019,6 +4023,18 @@ PrefabInstance:
     - target: {fileID: 2383086155322910419, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4706410367337605675, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4706410367337605675, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4706410367337605675, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
+      propertyPath: m_Color.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5412530711528637304, guid: 7523436cd6e279c4da45e98dab819def, type: 3}
       propertyPath: m_AnchorMax.y
