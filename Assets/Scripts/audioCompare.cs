@@ -4,21 +4,21 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 
 public class audioCompare : MonoBehaviour
 {
-
+    public Image fillImage;
+    public TMP_Dropdown dropdown;
     public AudioSource Speaker;
-    public Image image1;
-    public Image image2;
     AudioClip clip1 = null;
     AudioClip clip2 = null;
     bool clip1Recorded = false;
     bool clip2Recorded = false;
     AudioSource mutedSource;
-    float[] audioData;
-    public float[] spectrumData1;
-    public float[] spectrumData2;
+    float[] spectrumData1;
+    float[] spectrumData2;
     public Button btn1;
     public Button btn2;
     public Button compareButton;
@@ -29,9 +29,10 @@ public class audioCompare : MonoBehaviour
     bool compared = false;
     bool clip1Playing = false;
     bool clip2Playing = false;
-    public Outline dustbinOutline;
     public Slider slider1;
     public Slider slider2;
+    string[] fileArray;
+    Color initialColor;
     enum recordState
     {
         clip1,
@@ -42,23 +43,48 @@ public class audioCompare : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         spectrumData1 = new float[1024];
         spectrumData2 = new float[1024];
-        audioData = new float[1024];
         mutedSource = GetComponent<AudioSource>();
 
         btn1.onClick.AddListener(playButton1);
         btn2.onClick.AddListener(playButton2);
         compareButton.onClick.AddListener(onCompareButtonClick);
 
-        initialAnchorPosition1 = source1.anchoredPosition;
-        initialAnchorPosition2 = source2.anchoredPosition;
-    }
 
+        fileArray = Directory.GetFiles("Assets/Resources/", "*.wav");
+        foreach (var file in fileArray)
+        {
+            dropdown.options.Add(new TMP_Dropdown.OptionData(file.Remove(file.Length - 4).Remove(0, "Assets/Resources/".Length)));
+        }
+        dropdown.onValueChanged.AddListener(onValueSelected);
+        initialColor = fillImage.color;
+
+    }
+    bool loadingClip1 = false;
     // Update is called once per frame
     void Update()
     {
         float percentage = 0f;
+        if (loadingClip1)
+        {
+            percentage = mutedSource.time / clip1.length;
+            btn1.GetComponent<Image>().sprite = play;
+            fillImage.color = Color.blue;
+            slider1.value = percentage;
+            if (percentage > 0.98)
+            {
+                loadingClip1 = false;
+                clip1Recorded = true;
+                mutedSource.Stop();
+                mutedSource.clip = null;
+                slider1.value = 0;
+                fillImage.color = initialColor;
+                recording = recordState.none;
+                mutedSource.GetSpectrumData(spectrumData1, 0, FFTWindow.BlackmanHarris);
+            }
+        }
         if (Speaker.isPlaying)
         {
             percentage = Speaker.time / Speaker.clip.length;
@@ -121,7 +147,7 @@ public class audioCompare : MonoBehaviour
                 //start recording clip1
                 btn1.GetComponent<Image>().sprite = stop;
                 recording = recordState.clip1;
-                clip1 = Microphone.Start(null, true, 1, 44100);
+                clip1 = Microphone.Start(null, true, 5, 44100);
                 mutedSource.clip = clip1;
                 while (!(Microphone.GetPosition(Microphone.devices[0]) > 0)) { }
                 mutedSource.Play();
@@ -140,7 +166,6 @@ public class audioCompare : MonoBehaviour
             clip2Playing = false;
             return;
         }
-        Debug.Log("Button 2 is pressed");
         if (recording == recordState.clip2)
         {
             //stop recording
@@ -164,7 +189,7 @@ public class audioCompare : MonoBehaviour
             {
                 btn2.GetComponent<Image>().sprite = stop;
                 recording = recordState.clip2;
-                clip2 = Microphone.Start(null, true, 1, 44100);
+                clip2 = Microphone.Start(null, true, 5, 44100);
                 mutedSource.clip = clip2;
                 while (!(Microphone.GetPosition(Microphone.devices[0]) > 0)) { }
                 mutedSource.Play();
@@ -173,8 +198,13 @@ public class audioCompare : MonoBehaviour
 
         }
     }
-
-
+    void onValueSelected(int index)
+    {
+        clip1 = Resources.Load<AudioClip>(dropdown.options[index].text);
+        loadingClip1 = true;
+        mutedSource.clip = clip1;
+        mutedSource.Play();
+    }
     void onCompareButtonClick()
     {
         if (compared)
@@ -182,37 +212,36 @@ public class audioCompare : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
         float comparisionResult = calculateSimilarity(spectrumData1, spectrumData2);
-        compareTextArea.text = comparisionResult.ToString() + "%";
+        compareTextArea.text = (comparisionResult.ToString() + "%");
         compared = true;
     }
 
     float calculateSimilarity(float[] A, float[] B)
     {
-        
-        int lowerBound =Mathf.Clamp((int) convertFrequencyToIndex(30, 1024)-5,0,1024);
-        int higherBound =Mathf.Clamp((int) convertFrequencyToIndex(400, 1024)+5,0,1024);
-        float[] vectorA = new float[higherBound-lowerBound];
-        float[] vectorB = new float[higherBound-lowerBound];
+
+        int lowerBound = Mathf.Clamp((int)convertFrequencyToIndex(30, 1024) - 5, 0, 1024);
+        int higherBound = Mathf.Clamp((int)convertFrequencyToIndex(400, 1024) + 5, 0, 1024);
+        float[] vectorA = new float[higherBound - lowerBound];
+        float[] vectorB = new float[higherBound - lowerBound];
         for (int i = lowerBound; i < higherBound; i++)
         {
-            vectorA[i-lowerBound] = A[i];
-            vectorB[i-lowerBound] = B[i];
+            vectorA[i - lowerBound] = A[i];
+            vectorB[i - lowerBound] = B[i];
         }
         float vecAMax = vectorA.Max();
         float vecBMax = vectorB.Max();
-        Debug.Log("vecAmax:"+vecAMax);
         float sum = 0;
         int j = 0;
-        for (int i = lowerBound; i <higherBound; i++)
+        for (int i = lowerBound; i < higherBound; i++)
         {
             vectorA[i] /= vecAMax;
             vectorB[i] /= vecBMax;
-            if (vectorA[i]<0.1 || vectorB[i]<0.1)
+            if (vectorA[i] < 0.1 || vectorB[i] < 0.1)
             {
                 continue;
             }
             float temp = vectorA[i] - vectorB[i];
-        
+
             temp = Mathf.Abs(temp);
             temp = temp * 100;
             if (temp > 100)
@@ -227,8 +256,9 @@ public class audioCompare : MonoBehaviour
             j++;
 
         }
-        Debug.Log(sum/j);
-        return sum/j;
+        if (j == 0)
+            return 0;
+        return sum / j;
     }
     public void resetOne()
     {
@@ -256,34 +286,4 @@ public class audioCompare : MonoBehaviour
     }
 
 
-    public RectTransform source1;
-    public RectTransform source2;
-    public RectTransform delete;
-    Vector2 initialAnchorPosition1;
-    Vector2 initialAnchorPosition2;
-    /*void IBeginDragHandler1(PointerEventData pointerEventData)
-    {
-        Debug.Log("Begin Drag");
-    }
-    void IDragHandler1(PointerEventData pointerEventData)
-    {
-        Debug.Log("Dragging");
-        source1.anchoredPosition += pointerEventData.delta;
-    }
-    void IEndDragHandler1(PointerEventData pointerEventData)
-    {
-        Debug.Log("End Drag");
-        if (source1.anchoredPosition.x > delete.anchoredPosition.x)
-        {
-            resetOne();
-        }
-        source1.anchoredPosition = initialAnchorPosition1;
-    }
-    void IBeginDragHandler2(PointerEventData pointerEventData)
-    {
-        Debug.Log("Begin Drag");
-        source2.anchoredPosition += pointerEventData.delta;
-        
-    }*/
-    
 }

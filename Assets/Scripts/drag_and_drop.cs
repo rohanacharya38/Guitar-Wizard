@@ -24,10 +24,7 @@ public class drag_and_drop : MonoBehaviour, IBeginDragHandler, IEndDragHandler, 
     }
 
     // Update is called once per frame
-    void Update()
-    {
 
-    }
     void IBeginDragHandler.OnBeginDrag(PointerEventData eventData)
     {
         GetComponent<CanvasGroup>().interactable = false;
